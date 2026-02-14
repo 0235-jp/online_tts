@@ -9,7 +9,7 @@ interface SettingsRepository {
     val settingsFlow: Flow<TtsSettings>
     suspend fun getSettings(): TtsSettings
     suspend fun updateProviderType(type: TtsProviderType)
-    suspend fun updateSelectedSpeaker(id: Int, name: String)
+    suspend fun updateSpeaker(uuid: String, styleId: Int, styleName: String)
     suspend fun updateVoiceParams(params: VoiceParams)
     fun getApiKey(providerType: TtsProviderType): String
     fun setApiKey(providerType: TtsProviderType, apiKey: String)

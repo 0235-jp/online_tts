@@ -60,6 +60,7 @@ class AivisCloudTtsProvider @Inject constructor(
                 speaker.styles.map { style ->
                     Speaker(
                         name = speaker.name,
+                        speakerUuid = speaker.speaker_uuid,
                         styleId = style.id,
                         styleName = style.name,
                     )

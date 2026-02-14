@@ -20,6 +20,7 @@ class TtsPreferencesDataStore @Inject constructor(
 ) {
     private companion object {
         val PROVIDER_TYPE = stringPreferencesKey("provider_type")
+        val SPEAKER_MODEL_UUID = stringPreferencesKey("speaker_model_uuid")
         val SELECTED_SPEAKER_ID = intPreferencesKey("selected_speaker_id")
         val SELECTED_SPEAKER_NAME = stringPreferencesKey("selected_speaker_name")
         val SPEED_SCALE = floatPreferencesKey("speed_scale")
@@ -33,6 +34,7 @@ class TtsPreferencesDataStore @Inject constructor(
             providerType = prefs[PROVIDER_TYPE]?.let {
                 try { TtsProviderType.valueOf(it) } catch (_: Exception) { null }
             } ?: TtsProviderType.AIVIS_CLOUD,
+            speakerModelUuid = prefs[SPEAKER_MODEL_UUID] ?: "",
             selectedSpeakerId = prefs[SELECTED_SPEAKER_ID] ?: 0,
             selectedSpeakerName = prefs[SELECTED_SPEAKER_NAME] ?: "",
             voiceParams = VoiceParams(
@@ -48,10 +50,11 @@ class TtsPreferencesDataStore @Inject constructor(
         dataStore.edit { it[PROVIDER_TYPE] = type.name }
     }
 
-    suspend fun updateSelectedSpeaker(id: Int, name: String) {
+    suspend fun updateSpeaker(uuid: String, styleId: Int, styleName: String) {
         dataStore.edit {
-            it[SELECTED_SPEAKER_ID] = id
-            it[SELECTED_SPEAKER_NAME] = name
+            it[SPEAKER_MODEL_UUID] = uuid
+            it[SELECTED_SPEAKER_ID] = styleId
+            it[SELECTED_SPEAKER_NAME] = styleName
         }
     }
 

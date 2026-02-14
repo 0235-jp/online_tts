@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TtsSettings(
     val providerType: TtsProviderType = TtsProviderType.AIVIS_CLOUD,
+    val speakerModelUuid: String = "",
     val selectedSpeakerId: Int = 0,
     val selectedSpeakerName: String = "",
     val voiceParams: VoiceParams = VoiceParams(),

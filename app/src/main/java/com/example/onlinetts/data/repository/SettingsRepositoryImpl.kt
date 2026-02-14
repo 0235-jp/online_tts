@@ -26,8 +26,8 @@ class SettingsRepositoryImpl @Inject constructor(
         preferencesDataStore.updateProviderType(type)
     }
 
-    override suspend fun updateSelectedSpeaker(id: Int, name: String) {
-        preferencesDataStore.updateSelectedSpeaker(id, name)
+    override suspend fun updateSpeaker(uuid: String, styleId: Int, styleName: String) {
+        preferencesDataStore.updateSpeaker(uuid, styleId, styleName)
     }
 
     override suspend fun updateVoiceParams(params: VoiceParams) {

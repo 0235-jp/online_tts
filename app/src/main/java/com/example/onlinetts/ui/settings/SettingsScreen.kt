@@ -141,7 +141,12 @@ fun SettingsScreen(
                 headlineContent = { Text(stringResource(R.string.speaker_selection)) },
                 supportingContent = {
                     val name = uiState.settings.selectedSpeakerName
-                    if (name.isNotBlank()) Text(name)
+                    val uuid = uiState.settings.speakerModelUuid
+                    if (name.isNotBlank()) {
+                        Text("$name\nUUID: $uuid")
+                    } else if (uuid.isNotBlank()) {
+                        Text("UUID: $uuid")
+                    }
                 },
                 modifier = Modifier.clickable { onNavigateToSpeakerSelection() },
             )
