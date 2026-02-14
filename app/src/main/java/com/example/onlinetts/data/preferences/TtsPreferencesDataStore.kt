@@ -8,6 +8,7 @@ import com.example.onlinetts.data.model.TtsSettings
 import com.example.onlinetts.tts.provider.TtsProviderType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
