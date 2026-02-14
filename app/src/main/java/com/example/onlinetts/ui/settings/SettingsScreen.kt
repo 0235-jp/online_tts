@@ -167,7 +167,8 @@ fun SettingsScreen(
                 provider = remember(uiState.settings.providerType) { viewModel.getProvider() },
                 request = AudioQueryRequest(
                     text = stringResource(R.string.test_text),
-                    speakerId = uiState.settings.selectedSpeakerId,
+                    modelUuid = uiState.settings.speakerModelUuid,
+                    styleId = uiState.settings.selectedSpeakerId,
                     voiceParams = uiState.settings.voiceParams,
                 ),
                 modifier = Modifier.fillMaxWidth(),

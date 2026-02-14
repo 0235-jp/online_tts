@@ -8,6 +8,6 @@ import com.example.onlinetts.tts.api.TtsApiResult
 interface TtsProvider {
     val type: TtsProviderType
     suspend fun synthesize(request: AudioQueryRequest): TtsApiResult<SynthesisResult>
-    suspend fun getSpeakers(): TtsApiResult<List<Speaker>>
+    suspend fun getSpeakers(modelUuid: String): TtsApiResult<List<Speaker>>
     fun isConfigured(): Boolean
 }

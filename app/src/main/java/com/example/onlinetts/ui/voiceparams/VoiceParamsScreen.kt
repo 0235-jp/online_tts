@@ -57,17 +57,17 @@ fun VoiceParamsScreen(
         ) {
             SliderWithLabel(
                 label = stringResource(R.string.speed_scale),
-                value = voiceParams.speedScale,
-                onValueChange = { viewModel.updateSpeedScale(it) },
-                valueRange = VoiceParams.SPEED_RANGE,
+                value = voiceParams.speakingRate,
+                onValueChange = { viewModel.updateSpeakingRate(it) },
+                valueRange = VoiceParams.SPEAKING_RATE_RANGE,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             SliderWithLabel(
                 label = stringResource(R.string.pitch_scale),
-                value = voiceParams.pitchScale,
-                onValueChange = { viewModel.updatePitchScale(it) },
+                value = voiceParams.pitch,
+                onValueChange = { viewModel.updatePitch(it) },
                 valueRange = VoiceParams.PITCH_RANGE,
             )
 
@@ -75,8 +75,8 @@ fun VoiceParamsScreen(
 
             SliderWithLabel(
                 label = stringResource(R.string.volume_scale),
-                value = voiceParams.volumeScale,
-                onValueChange = { viewModel.updateVolumeScale(it) },
+                value = voiceParams.volume,
+                onValueChange = { viewModel.updateVolume(it) },
                 valueRange = VoiceParams.VOLUME_RANGE,
             )
 
@@ -84,9 +84,9 @@ fun VoiceParamsScreen(
 
             SliderWithLabel(
                 label = stringResource(R.string.intonation_scale),
-                value = voiceParams.intonationScale,
-                onValueChange = { viewModel.updateIntonationScale(it) },
-                valueRange = VoiceParams.INTONATION_RANGE,
+                value = voiceParams.emotionalIntensity,
+                onValueChange = { viewModel.updateEmotionalIntensity(it) },
+                valueRange = VoiceParams.EMOTIONAL_INTENSITY_RANGE,
             )
 
             Spacer(modifier = Modifier.height(24.dp))

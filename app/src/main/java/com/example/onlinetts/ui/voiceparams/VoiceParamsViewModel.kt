@@ -27,23 +27,23 @@ class VoiceParamsViewModel @Inject constructor(
         }
     }
 
-    fun updateSpeedScale(value: Float) {
-        _voiceParams.value = _voiceParams.value.copy(speedScale = value)
+    fun updateSpeakingRate(value: Float) {
+        _voiceParams.value = _voiceParams.value.copy(speakingRate = value)
         saveParams()
     }
 
-    fun updatePitchScale(value: Float) {
-        _voiceParams.value = _voiceParams.value.copy(pitchScale = value)
+    fun updatePitch(value: Float) {
+        _voiceParams.value = _voiceParams.value.copy(pitch = value)
         saveParams()
     }
 
-    fun updateVolumeScale(value: Float) {
-        _voiceParams.value = _voiceParams.value.copy(volumeScale = value)
+    fun updateVolume(value: Float) {
+        _voiceParams.value = _voiceParams.value.copy(volume = value)
         saveParams()
     }
 
-    fun updateIntonationScale(value: Float) {
-        _voiceParams.value = _voiceParams.value.copy(intonationScale = value)
+    fun updateEmotionalIntensity(value: Float) {
+        _voiceParams.value = _voiceParams.value.copy(emotionalIntensity = value)
         saveParams()
     }
 

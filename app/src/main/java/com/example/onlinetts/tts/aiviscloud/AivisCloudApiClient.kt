@@ -1,12 +1,11 @@
 package com.example.onlinetts.tts.aiviscloud
 
-import com.example.onlinetts.tts.aiviscloud.model.AivisAudioQuery
-import com.example.onlinetts.tts.aiviscloud.model.AivisSpeaker
+import com.example.onlinetts.tts.aiviscloud.model.AivisModelResponse
+import com.example.onlinetts.tts.aiviscloud.model.AivisTtsRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
-import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -22,25 +21,16 @@ class AivisCloudApiClient @Inject constructor(
         private const val BASE_URL = "https://api.aivis-project.com/v1"
     }
 
-    suspend fun audioQuery(text: String, speakerId: Int, apiKey: String): AivisAudioQuery {
-        return httpClient.post("$BASE_URL/audio_query") {
+    suspend fun synthesize(request: AivisTtsRequest, apiKey: String): ByteArray {
+        return httpClient.post("$BASE_URL/tts/synthesize") {
             bearerAuth(apiKey)
-            parameter("text", text)
-            parameter("speaker", speakerId)
-        }.body()
-    }
-
-    suspend fun synthesis(audioQuery: AivisAudioQuery, speakerId: Int, apiKey: String): ByteArray {
-        return httpClient.post("$BASE_URL/synthesis") {
-            bearerAuth(apiKey)
-            parameter("speaker", speakerId)
             contentType(ContentType.Application.Json)
-            setBody(audioQuery)
+            setBody(request)
         }.body()
     }
 
-    suspend fun getSpeakers(apiKey: String): List<AivisSpeaker> {
-        return httpClient.get("$BASE_URL/speakers") {
+    suspend fun getModel(modelUuid: String, apiKey: String): AivisModelResponse {
+        return httpClient.get("$BASE_URL/aivm-models/$modelUuid") {
             bearerAuth(apiKey)
         }.body()
     }

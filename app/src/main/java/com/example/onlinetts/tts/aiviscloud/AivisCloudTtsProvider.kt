@@ -2,6 +2,7 @@ package com.example.onlinetts.tts.aiviscloud
 
 import com.example.onlinetts.data.model.Speaker
 import com.example.onlinetts.data.preferences.EncryptedPreferences
+import com.example.onlinetts.tts.aiviscloud.model.AivisTtsRequest
 import com.example.onlinetts.tts.api.AudioQueryRequest
 import com.example.onlinetts.tts.api.SynthesisResult
 import com.example.onlinetts.tts.api.TtsApiResult
@@ -26,21 +27,20 @@ class AivisCloudTtsProvider @Inject constructor(
                 return TtsApiResult.Error("API キーが設定されていません")
             }
 
-            // 1. AudioQuery を取得
-            val audioQuery = apiClient.audioQuery(request.text, request.speakerId, apiKey)
-
-            // 2. パラメータを上書き
-            val modifiedQuery = audioQuery.copy(
-                speedScale = request.voiceParams.speedScale,
-                pitchScale = request.voiceParams.pitchScale,
-                volumeScale = request.voiceParams.volumeScale,
-                intonationScale = request.voiceParams.intonationScale,
+            val ttsRequest = AivisTtsRequest(
+                modelUuid = request.modelUuid,
+                text = request.text,
+                speakerUuid = request.speakerUuid.ifBlank { null },
+                styleId = request.styleId,
+                speakingRate = request.voiceParams.speakingRate,
+                pitch = request.voiceParams.pitch,
+                volume = request.voiceParams.volume,
+                emotionalIntensity = request.voiceParams.emotionalIntensity,
+                outputFormat = "wav",
+                outputSamplingRate = 44100,
             )
 
-            // 3. 音声合成
-            val wavData = apiClient.synthesis(modifiedQuery, request.speakerId, apiKey)
-
-            // 4. WAV → PCM 変換
+            val wavData = apiClient.synthesize(ttsRequest, apiKey)
             val result = WavParser.parse(wavData)
             TtsApiResult.Success(result)
         } catch (e: Exception) {
@@ -48,27 +48,27 @@ class AivisCloudTtsProvider @Inject constructor(
         }
     }
 
-    override suspend fun getSpeakers(): TtsApiResult<List<Speaker>> {
+    override suspend fun getSpeakers(modelUuid: String): TtsApiResult<List<Speaker>> {
         return try {
             val apiKey = encryptedPreferences.getApiKey(type)
             if (apiKey.isBlank()) {
                 return TtsApiResult.Error("API キーが設定されていません")
             }
 
-            val speakers = apiClient.getSpeakers(apiKey)
-            val result = speakers.flatMap { speaker ->
+            val model = apiClient.getModel(modelUuid, apiKey)
+            val result = model.speakers.flatMap { speaker ->
                 speaker.styles.map { style ->
                     Speaker(
                         name = speaker.name,
-                        speakerUuid = speaker.speaker_uuid,
-                        styleId = style.id,
+                        speakerUuid = speaker.speakerUuid,
+                        styleId = style.localId,
                         styleName = style.name,
                     )
                 }
             }
             TtsApiResult.Success(result)
         } catch (e: Exception) {
-            TtsApiResult.Error("話者一覧の取得に失敗しました: ${e.message}", e)
+            TtsApiResult.Error("話者情報の取得に失敗しました: ${e.message}", e)
         }
     }
 

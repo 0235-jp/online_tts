@@ -23,10 +23,10 @@ class TtsPreferencesDataStore @Inject constructor(
         val SPEAKER_MODEL_UUID = stringPreferencesKey("speaker_model_uuid")
         val SELECTED_SPEAKER_ID = intPreferencesKey("selected_speaker_id")
         val SELECTED_SPEAKER_NAME = stringPreferencesKey("selected_speaker_name")
-        val SPEED_SCALE = floatPreferencesKey("speed_scale")
-        val PITCH_SCALE = floatPreferencesKey("pitch_scale")
-        val VOLUME_SCALE = floatPreferencesKey("volume_scale")
-        val INTONATION_SCALE = floatPreferencesKey("intonation_scale")
+        val SPEAKING_RATE = floatPreferencesKey("speaking_rate")
+        val PITCH = floatPreferencesKey("pitch")
+        val VOLUME = floatPreferencesKey("volume")
+        val EMOTIONAL_INTENSITY = floatPreferencesKey("emotional_intensity")
     }
 
     val settingsFlow: Flow<TtsSettings> = dataStore.data.map { prefs ->
@@ -38,10 +38,10 @@ class TtsPreferencesDataStore @Inject constructor(
             selectedSpeakerId = prefs[SELECTED_SPEAKER_ID] ?: 0,
             selectedSpeakerName = prefs[SELECTED_SPEAKER_NAME] ?: "",
             voiceParams = VoiceParams(
-                speedScale = prefs[SPEED_SCALE] ?: 1.0f,
-                pitchScale = prefs[PITCH_SCALE] ?: 0.0f,
-                volumeScale = prefs[VOLUME_SCALE] ?: 1.0f,
-                intonationScale = prefs[INTONATION_SCALE] ?: 1.0f,
+                speakingRate = prefs[SPEAKING_RATE] ?: 1.0f,
+                pitch = prefs[PITCH] ?: 0.0f,
+                volume = prefs[VOLUME] ?: 1.0f,
+                emotionalIntensity = prefs[EMOTIONAL_INTENSITY] ?: 1.0f,
             ),
         )
     }
@@ -60,10 +60,10 @@ class TtsPreferencesDataStore @Inject constructor(
 
     suspend fun updateVoiceParams(params: VoiceParams) {
         dataStore.edit {
-            it[SPEED_SCALE] = params.speedScale
-            it[PITCH_SCALE] = params.pitchScale
-            it[VOLUME_SCALE] = params.volumeScale
-            it[INTONATION_SCALE] = params.intonationScale
+            it[SPEAKING_RATE] = params.speakingRate
+            it[PITCH] = params.pitch
+            it[VOLUME] = params.volume
+            it[EMOTIONAL_INTENSITY] = params.emotionalIntensity
         }
     }
 }

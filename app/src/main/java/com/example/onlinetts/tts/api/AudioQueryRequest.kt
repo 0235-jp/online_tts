@@ -4,6 +4,8 @@ import com.example.onlinetts.data.model.VoiceParams
 
 data class AudioQueryRequest(
     val text: String,
-    val speakerId: Int,
+    val modelUuid: String,
+    val speakerUuid: String = "",
+    val styleId: Int? = null,
     val voiceParams: VoiceParams = VoiceParams(),
 )

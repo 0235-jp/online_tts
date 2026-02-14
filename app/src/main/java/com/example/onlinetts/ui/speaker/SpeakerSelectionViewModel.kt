@@ -62,20 +62,20 @@ class SpeakerSelectionViewModel @Inject constructor(
             val settings = settingsRepository.settingsFlow.first()
             val provider = ttsProviderFactory.create(settings.providerType)
 
-            when (val result = provider.getSpeakers()) {
+            when (val result = provider.getSpeakers(uuid)) {
                 is TtsApiResult.Success -> {
-                    val matched = result.data.filter { it.speakerUuid == uuid }
-                    if (matched.isEmpty()) {
+                    val speakers = result.data
+                    if (speakers.isEmpty()) {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            error = "UUID に一致する話者が見つかりません",
+                            error = "話者が見つかりません",
                         )
                     } else {
-                        val speakerName = matched.first().name
-                        val preselected = matched.find { it.styleId == _uiState.value.selectedStyleId }
-                        val selectedId = preselected?.styleId ?: matched.first().styleId
+                        val speakerName = speakers.first().name
+                        val preselected = speakers.find { it.styleId == _uiState.value.selectedStyleId }
+                        val selectedId = preselected?.styleId ?: speakers.first().styleId
                         _uiState.value = _uiState.value.copy(
-                            styles = matched,
+                            styles = speakers,
                             speakerName = speakerName,
                             selectedStyleId = selectedId,
                             isLoading = false,

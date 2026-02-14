@@ -1,18 +1,19 @@
 package com.example.onlinetts.tts.aiviscloud.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 
 @Serializable
-data class AivisAudioQuery(
-    val accent_phrases: List<JsonElement> = emptyList(),
-    val speedScale: Float = 1.0f,
-    val pitchScale: Float = 0.0f,
-    val intonationScale: Float = 1.0f,
-    val volumeScale: Float = 1.0f,
-    val prePhonemeLength: Float = 0.1f,
-    val postPhonemeLength: Float = 0.1f,
-    val outputSamplingRate: Int = 44100,
-    val outputStereo: Boolean = false,
-    val kana: String? = null,
+data class AivisTtsRequest(
+    @SerialName("model_uuid") val modelUuid: String,
+    val text: String,
+    @SerialName("speaker_uuid") val speakerUuid: String? = null,
+    @SerialName("style_id") val styleId: Int? = null,
+    @SerialName("use_ssml") val useSsml: Boolean = false,
+    @SerialName("speaking_rate") val speakingRate: Float = 1.0f,
+    val pitch: Float = 0.0f,
+    val volume: Float = 1.0f,
+    @SerialName("emotional_intensity") val emotionalIntensity: Float = 1.0f,
+    @SerialName("output_format") val outputFormat: String = "wav",
+    @SerialName("output_sampling_rate") val outputSamplingRate: Int = 44100,
 )

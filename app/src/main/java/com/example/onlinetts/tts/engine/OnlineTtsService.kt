@@ -87,7 +87,8 @@ class OnlineTtsService : TextToSpeechService() {
 
                 val audioRequest = AudioQueryRequest(
                     text = text,
-                    speakerId = settings.selectedSpeakerId,
+                    modelUuid = settings.speakerModelUuid,
+                    styleId = settings.selectedSpeakerId,
                     voiceParams = settings.voiceParams,
                 )
 
