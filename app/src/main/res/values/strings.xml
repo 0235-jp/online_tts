@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Online TTS</string>
+    <string name="settings_title">Online TTS 設定</string>
+    <string name="api_provider">API プロバイダー</string>
+    <string name="api_key">API キー</string>
+    <string name="api_key_hint">API キーを入力</string>
+    <string name="speaker_selection">話者選択</string>
+    <string name="voice_params">音声パラメータ</string>
+    <string name="speed_scale">速度</string>
+    <string name="pitch_scale">ピッチ</string>
+    <string name="volume_scale">音量</string>
+    <string name="intonation_scale">抑揚</string>
+    <string name="test_speech">テスト再生</string>
+    <string name="test_text">これはテスト音声です。</string>
+    <string name="save">保存</string>
+    <string name="loading">読み込み中…</string>
+    <string name="error_no_api_key">API キーが設定されていません</string>
+    <string name="error_network">ネットワークエラーが発生しました</string>
+    <string name="error_synthesis">音声合成に失敗しました</string>
+    <string name="no_speakers">話者が見つかりません</string>
+    <string name="sample_text">これは、オンライン音声合成エンジンのサンプルテキストです。</string>
+</resources>
