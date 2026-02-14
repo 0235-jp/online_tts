@@ -17,8 +17,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
@@ -40,14 +38,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.onlinetts.R
-import com.example.onlinetts.tts.api.AudioQueryRequest
 import com.example.onlinetts.tts.provider.TtsProviderType
 import com.example.onlinetts.ui.components.TestSpeechButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onNavigateToSpeakerSelection: () -> Unit,
+    onNavigateToVoiceSelection: () -> Unit,
     onNavigateToVoiceParams: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -136,19 +133,16 @@ fun SettingsScreen(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Speaker Selection
+            // Voice Selection
             ListItem(
-                headlineContent = { Text(stringResource(R.string.speaker_selection)) },
+                headlineContent = { Text(stringResource(R.string.voice_selection)) },
                 supportingContent = {
-                    val name = uiState.settings.selectedSpeakerName
-                    val uuid = uiState.settings.speakerModelUuid
+                    val name = uiState.settings.selectedVoiceName
                     if (name.isNotBlank()) {
-                        Text("$name\nUUID: $uuid")
-                    } else if (uuid.isNotBlank()) {
-                        Text("UUID: $uuid")
+                        Text(name)
                     }
                 },
-                modifier = Modifier.clickable { onNavigateToSpeakerSelection() },
+                modifier = Modifier.clickable { onNavigateToVoiceSelection() },
             )
 
             HorizontalDivider()
@@ -165,12 +159,9 @@ fun SettingsScreen(
             // Test Speech
             TestSpeechButton(
                 provider = remember(uiState.settings.providerType) { viewModel.getProvider() },
-                request = AudioQueryRequest(
-                    text = stringResource(R.string.test_text),
-                    modelUuid = uiState.settings.speakerModelUuid,
-                    styleId = uiState.settings.selectedSpeakerId,
-                    voiceParams = uiState.settings.voiceParams,
-                ),
+                text = stringResource(R.string.test_text),
+                voiceId = uiState.settings.selectedVoiceId,
+                params = uiState.settings.voiceParams,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

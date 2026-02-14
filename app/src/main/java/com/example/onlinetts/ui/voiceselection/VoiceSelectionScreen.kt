@@ -1,4 +1,4 @@
-package com.example.onlinetts.ui.speaker
+package com.example.onlinetts.ui.voiceselection
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -39,16 +39,16 @@ import com.example.onlinetts.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SpeakerSelectionScreen(
+fun VoiceSelectionScreen(
     onNavigateBack: () -> Unit,
-    viewModel: SpeakerSelectionViewModel = hiltViewModel(),
+    viewModel: VoiceSelectionViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.speaker_selection)) },
+                title = { Text(stringResource(R.string.voice_selection)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -63,9 +63,8 @@ fun SpeakerSelectionScreen(
                 .padding(padding)
                 .padding(16.dp),
         ) {
-            // UUID input
             Text(
-                text = "モデル UUID",
+                text = uiState.voiceSearchLabel,
                 style = MaterialTheme.typography.titleMedium,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -74,15 +73,15 @@ fun SpeakerSelectionScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 OutlinedTextField(
-                    value = uiState.uuid,
-                    onValueChange = { viewModel.updateUuid(it) },
-                    placeholder = { Text("話者のUUIDを入力") },
+                    value = uiState.query,
+                    onValueChange = { viewModel.updateQuery(it) },
+                    placeholder = { Text("検索クエリを入力") },
                     singleLine = true,
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
-                    onClick = { viewModel.resolveUuid() },
+                    onClick = { viewModel.search() },
                     enabled = !uiState.isLoading,
                 ) {
                     if (uiState.isLoading) {
@@ -93,7 +92,6 @@ fun SpeakerSelectionScreen(
                 }
             }
 
-            // Error
             if (uiState.error != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -103,36 +101,21 @@ fun SpeakerSelectionScreen(
                 )
             }
 
-            // Speaker name
-            if (uiState.speakerName.isNotBlank()) {
+            if (uiState.voices.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = uiState.speakerName,
-                    style = MaterialTheme.typography.titleLarge,
-                )
-            }
-
-            // Style list
-            if (uiState.styles.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "スタイル",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
                 HorizontalDivider()
 
                 LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(uiState.styles) { style ->
+                    items(uiState.voices) { voice ->
                         ListItem(
-                            headlineContent = {
-                                Text(style.styleName.ifBlank { "デフォルト" })
-                            },
+                            headlineContent = { Text(voice.name) },
                             supportingContent = {
-                                Text("ID: ${style.styleId}")
+                                if (voice.description.isNotBlank()) {
+                                    Text(voice.description)
+                                }
                             },
                             trailingContent = {
-                                if (style.styleId == uiState.selectedStyleId) {
+                                if (voice.id == uiState.selectedVoiceId) {
                                     Icon(
                                         Icons.Default.Check,
                                         contentDescription = "Selected",
@@ -142,7 +125,7 @@ fun SpeakerSelectionScreen(
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { viewModel.selectStyle(style.styleId) },
+                                .clickable { viewModel.selectVoice(voice.id) },
                         )
                         HorizontalDivider()
                     }

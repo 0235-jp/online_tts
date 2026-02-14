@@ -1,7 +1,6 @@
 package com.example.onlinetts.data.repository
 
 import com.example.onlinetts.data.model.TtsSettings
-import com.example.onlinetts.data.model.VoiceParams
 import com.example.onlinetts.tts.provider.TtsProviderType
 import kotlinx.coroutines.flow.Flow
 
@@ -9,8 +8,8 @@ interface SettingsRepository {
     val settingsFlow: Flow<TtsSettings>
     suspend fun getSettings(): TtsSettings
     suspend fun updateProviderType(type: TtsProviderType)
-    suspend fun updateSpeaker(uuid: String, styleId: Int, styleName: String)
-    suspend fun updateVoiceParams(params: VoiceParams)
+    suspend fun updateSelectedVoice(voiceId: String, voiceName: String)
+    suspend fun updateVoiceParams(params: Map<String, Float>)
     fun getApiKey(providerType: TtsProviderType): String
     fun setApiKey(providerType: TtsProviderType, apiKey: String)
 }

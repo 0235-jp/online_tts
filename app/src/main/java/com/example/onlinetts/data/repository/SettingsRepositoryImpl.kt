@@ -1,7 +1,6 @@
 package com.example.onlinetts.data.repository
 
 import com.example.onlinetts.data.model.TtsSettings
-import com.example.onlinetts.data.model.VoiceParams
 import com.example.onlinetts.data.preferences.EncryptedPreferences
 import com.example.onlinetts.data.preferences.TtsPreferencesDataStore
 import com.example.onlinetts.tts.provider.TtsProviderType
@@ -26,11 +25,11 @@ class SettingsRepositoryImpl @Inject constructor(
         preferencesDataStore.updateProviderType(type)
     }
 
-    override suspend fun updateSpeaker(uuid: String, styleId: Int, styleName: String) {
-        preferencesDataStore.updateSpeaker(uuid, styleId, styleName)
+    override suspend fun updateSelectedVoice(voiceId: String, voiceName: String) {
+        preferencesDataStore.updateSelectedVoice(voiceId, voiceName)
     }
 
-    override suspend fun updateVoiceParams(params: VoiceParams) {
+    override suspend fun updateVoiceParams(params: Map<String, Float>) {
         preferencesDataStore.updateVoiceParams(params)
     }
 

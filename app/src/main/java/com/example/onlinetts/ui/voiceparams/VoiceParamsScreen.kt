@@ -25,7 +25,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.onlinetts.R
-import com.example.onlinetts.data.model.VoiceParams
 import com.example.onlinetts.ui.components.SliderWithLabel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +33,7 @@ fun VoiceParamsScreen(
     onNavigateBack: () -> Unit,
     viewModel: VoiceParamsViewModel = hiltViewModel(),
 ) {
-    val voiceParams by viewModel.voiceParams.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -55,39 +54,17 @@ fun VoiceParamsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
         ) {
-            SliderWithLabel(
-                label = stringResource(R.string.speed_scale),
-                value = voiceParams.speakingRate,
-                onValueChange = { viewModel.updateSpeakingRate(it) },
-                valueRange = VoiceParams.SPEAKING_RATE_RANGE,
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SliderWithLabel(
-                label = stringResource(R.string.pitch_scale),
-                value = voiceParams.pitch,
-                onValueChange = { viewModel.updatePitch(it) },
-                valueRange = VoiceParams.PITCH_RANGE,
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SliderWithLabel(
-                label = stringResource(R.string.volume_scale),
-                value = voiceParams.volume,
-                onValueChange = { viewModel.updateVolume(it) },
-                valueRange = VoiceParams.VOLUME_RANGE,
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SliderWithLabel(
-                label = stringResource(R.string.intonation_scale),
-                value = voiceParams.emotionalIntensity,
-                onValueChange = { viewModel.updateEmotionalIntensity(it) },
-                valueRange = VoiceParams.EMOTIONAL_INTENSITY_RANGE,
-            )
+            uiState.specs.forEachIndexed { index, spec ->
+                if (index > 0) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                SliderWithLabel(
+                    label = spec.label,
+                    value = uiState.values[spec.key] ?: spec.defaultValue,
+                    onValueChange = { viewModel.updateParam(spec.key, it) },
+                    valueRange = spec.range,
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 

@@ -16,9 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.onlinetts.tts.api.AudioQueryRequest
 import com.example.onlinetts.tts.api.SynthesisResult
 import com.example.onlinetts.tts.api.TtsApiResult
 import com.example.onlinetts.tts.provider.TtsProvider
@@ -29,7 +27,9 @@ import kotlinx.coroutines.withContext
 @Composable
 fun TestSpeechButton(
     provider: TtsProvider?,
-    request: AudioQueryRequest,
+    text: String,
+    voiceId: String,
+    params: Map<String, Float>,
     modifier: Modifier = Modifier,
 ) {
     var isPlaying by remember { mutableStateOf(false) }
@@ -41,7 +41,7 @@ fun TestSpeechButton(
             isPlaying = true
             scope.launch {
                 try {
-                    when (val result = provider.synthesize(request)) {
+                    when (val result = provider.synthesize(text, voiceId, params)) {
                         is TtsApiResult.Success -> playPcm(result.data)
                         is TtsApiResult.Error -> { /* handled silently */ }
                     }
@@ -95,7 +95,6 @@ private suspend fun playPcm(result: SynthesisResult) = withContext(Dispatchers.I
     audioTrack.write(result.pcmData, 0, result.pcmData.size)
     audioTrack.play()
 
-    // Wait for playback to finish
     val durationMs = (result.pcmData.size.toLong() * 1000) /
         (result.sampleRate.toLong() * result.channels * (result.bitsPerSample / 8))
     Thread.sleep(durationMs + 100)

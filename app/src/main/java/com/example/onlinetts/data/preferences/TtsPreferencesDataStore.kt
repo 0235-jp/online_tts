@@ -3,30 +3,25 @@ package com.example.onlinetts.data.preferences
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.onlinetts.data.model.TtsSettings
-import com.example.onlinetts.data.model.VoiceParams
 import com.example.onlinetts.tts.provider.TtsProviderType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class TtsPreferencesDataStore @Inject constructor(
     private val dataStore: DataStore<Preferences>,
+    private val json: Json,
 ) {
     private companion object {
         val PROVIDER_TYPE = stringPreferencesKey("provider_type")
-        val SPEAKER_MODEL_UUID = stringPreferencesKey("speaker_model_uuid")
-        val SELECTED_SPEAKER_ID = intPreferencesKey("selected_speaker_id")
-        val SELECTED_SPEAKER_NAME = stringPreferencesKey("selected_speaker_name")
-        val SPEAKING_RATE = floatPreferencesKey("speaking_rate")
-        val PITCH = floatPreferencesKey("pitch")
-        val VOLUME = floatPreferencesKey("volume")
-        val EMOTIONAL_INTENSITY = floatPreferencesKey("emotional_intensity")
+        val SELECTED_VOICE_ID = stringPreferencesKey("selected_voice_id")
+        val SELECTED_VOICE_NAME = stringPreferencesKey("selected_voice_name")
+        val VOICE_PARAMS = stringPreferencesKey("voice_params")
     }
 
     val settingsFlow: Flow<TtsSettings> = dataStore.data.map { prefs ->
@@ -34,15 +29,15 @@ class TtsPreferencesDataStore @Inject constructor(
             providerType = prefs[PROVIDER_TYPE]?.let {
                 try { TtsProviderType.valueOf(it) } catch (_: Exception) { null }
             } ?: TtsProviderType.AIVIS_CLOUD,
-            speakerModelUuid = prefs[SPEAKER_MODEL_UUID] ?: "",
-            selectedSpeakerId = prefs[SELECTED_SPEAKER_ID] ?: 0,
-            selectedSpeakerName = prefs[SELECTED_SPEAKER_NAME] ?: "",
-            voiceParams = VoiceParams(
-                speakingRate = prefs[SPEAKING_RATE] ?: 1.0f,
-                pitch = prefs[PITCH] ?: 0.0f,
-                volume = prefs[VOLUME] ?: 1.0f,
-                emotionalIntensity = prefs[EMOTIONAL_INTENSITY] ?: 1.0f,
-            ),
+            selectedVoiceId = prefs[SELECTED_VOICE_ID] ?: "",
+            selectedVoiceName = prefs[SELECTED_VOICE_NAME] ?: "",
+            voiceParams = prefs[VOICE_PARAMS]?.let {
+                try {
+                    json.decodeFromString<Map<String, Float>>(it)
+                } catch (_: Exception) {
+                    emptyMap()
+                }
+            } ?: emptyMap(),
         )
     }
 
@@ -50,20 +45,16 @@ class TtsPreferencesDataStore @Inject constructor(
         dataStore.edit { it[PROVIDER_TYPE] = type.name }
     }
 
-    suspend fun updateSpeaker(uuid: String, styleId: Int, styleName: String) {
+    suspend fun updateSelectedVoice(voiceId: String, voiceName: String) {
         dataStore.edit {
-            it[SPEAKER_MODEL_UUID] = uuid
-            it[SELECTED_SPEAKER_ID] = styleId
-            it[SELECTED_SPEAKER_NAME] = styleName
+            it[SELECTED_VOICE_ID] = voiceId
+            it[SELECTED_VOICE_NAME] = voiceName
         }
     }
 
-    suspend fun updateVoiceParams(params: VoiceParams) {
+    suspend fun updateVoiceParams(params: Map<String, Float>) {
         dataStore.edit {
-            it[SPEAKING_RATE] = params.speakingRate
-            it[PITCH] = params.pitch
-            it[VOLUME] = params.volume
-            it[EMOTIONAL_INTENSITY] = params.emotionalIntensity
+            it[VOICE_PARAMS] = json.encodeToString(params)
         }
     }
 }

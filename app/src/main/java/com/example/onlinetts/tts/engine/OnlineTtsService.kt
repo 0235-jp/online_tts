@@ -7,7 +7,6 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.TextToSpeechService
 import android.util.Log
 import com.example.onlinetts.data.repository.SettingsRepository
-import com.example.onlinetts.tts.api.AudioQueryRequest
 import com.example.onlinetts.tts.api.TtsApiResult
 import com.example.onlinetts.tts.provider.TtsProviderFactory
 import dagger.hilt.EntryPoint
@@ -85,14 +84,13 @@ class OnlineTtsService : TextToSpeechService() {
                     return@runBlocking
                 }
 
-                val audioRequest = AudioQueryRequest(
+                val result = provider.synthesize(
                     text = text,
-                    modelUuid = settings.speakerModelUuid,
-                    styleId = settings.selectedSpeakerId,
-                    voiceParams = settings.voiceParams,
+                    voiceId = settings.selectedVoiceId,
+                    params = settings.voiceParams,
                 )
 
-                when (val result = provider.synthesize(audioRequest)) {
+                when (result) {
                     is TtsApiResult.Success -> {
                         if (isStopped) return@runBlocking
 
