@@ -9,7 +9,7 @@ data class AivisTtsRequest(
     val text: String,
     @SerialName("speaker_uuid") val speakerUuid: String? = null,
     @SerialName("style_id") val styleId: Int? = null,
-    @SerialName("use_ssml") val useSsml: Boolean = false,
+    @SerialName("use_ssml") val useSsml: Boolean = true,
     @SerialName("speaking_rate") val speakingRate: Float = 1.0f,
     val pitch: Float = 0.0f,
     val volume: Float = 1.0f,
