@@ -4,7 +4,7 @@ import com.example.onlinetts.data.preferences.EncryptedPreferences
 import com.example.onlinetts.tts.aiviscloud.model.AivisTtsRequest
 import com.example.onlinetts.tts.api.SynthesisResult
 import com.example.onlinetts.tts.api.TtsApiResult
-import com.example.onlinetts.tts.engine.WavParser
+import com.example.onlinetts.tts.engine.AudioDecoder
 import com.example.onlinetts.tts.provider.TtsProvider
 import com.example.onlinetts.tts.provider.TtsProviderType
 import com.example.onlinetts.tts.provider.Voice
@@ -76,12 +76,11 @@ class AivisCloudTtsProvider @Inject constructor(
                 pitch = params["pitch"] ?: 0.0f,
                 volume = params["volume"] ?: 1.0f,
                 emotionalIntensity = params["emotional_intensity"] ?: 1.0f,
-                outputFormat = "wav",
-                outputSamplingRate = 44100,
+                outputFormat = "mp3",
             )
 
-            val wavData = apiClient.synthesize(ttsRequest, apiKey)
-            val result = WavParser.parse(wavData)
+            val audioData = apiClient.synthesize(ttsRequest, apiKey)
+            val result = AudioDecoder.decode(audioData)
             TtsApiResult.Success(result)
         } catch (e: Exception) {
             TtsApiResult.Error("音声合成に失敗しました: ${e.message}", e)
