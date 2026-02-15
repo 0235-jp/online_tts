@@ -21,8 +21,8 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystorePath = System.getenv("KEYSTORE_PATH") ?: rootProject.file("release.keystore").absolutePath
-            storeFile = file(keystorePath)
+            val keystorePath = System.getenv("KEYSTORE_PATH")
+            storeFile = if (keystorePath != null) rootProject.file(keystorePath) else rootProject.file("release.keystore")
             storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "onlinetts"
             keyAlias = System.getenv("KEY_ALIAS") ?: "online-tts"
             keyPassword = System.getenv("KEY_PASSWORD") ?: "onlinetts"
