@@ -2,13 +2,17 @@ package com.example.onlinetts.tts.aiviscloud
 
 import com.example.onlinetts.data.preferences.EncryptedPreferences
 import com.example.onlinetts.tts.aiviscloud.model.AivisTtsRequest
+import com.example.onlinetts.tts.api.SynthesisEvent
 import com.example.onlinetts.tts.api.SynthesisResult
 import com.example.onlinetts.tts.api.TtsApiResult
 import com.example.onlinetts.tts.engine.AudioDecoder
+import com.example.onlinetts.tts.engine.StreamingAudioDecoder
 import com.example.onlinetts.tts.provider.TtsProvider
 import com.example.onlinetts.tts.provider.TtsProviderType
 import com.example.onlinetts.tts.provider.Voice
 import com.example.onlinetts.tts.provider.VoiceParamSpec
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -84,6 +88,49 @@ class AivisCloudTtsProvider @Inject constructor(
             TtsApiResult.Success(result)
         } catch (e: Exception) {
             TtsApiResult.Error("音声合成に失敗しました: ${e.message}", e)
+        }
+    }
+
+    override fun synthesizeStreaming(
+        text: String,
+        voiceId: String,
+        params: Map<String, Float>,
+    ): Flow<SynthesisEvent> = flow {
+        val apiKey = encryptedPreferences.getApiKey(type)
+        if (apiKey.isBlank()) {
+            emit(SynthesisEvent.Error("API キーが設定されていません"))
+            return@flow
+        }
+
+        val (modelUuid, styleId) = decodeVoiceId(voiceId)
+
+        val ttsRequest = AivisTtsRequest(
+            modelUuid = modelUuid,
+            text = text,
+            styleId = styleId,
+            speakingRate = params["speaking_rate"] ?: 1.0f,
+            pitch = params["pitch"] ?: 0.0f,
+            volume = params["volume"] ?: 1.0f,
+            emotionalIntensity = params["emotional_intensity"] ?: 1.0f,
+            outputFormat = "mp3",
+        )
+
+        val decoder = StreamingAudioDecoder()
+        try {
+            apiClient.synthesizeStreaming(ttsRequest, apiKey).collect { chunk ->
+                val events = decoder.feedChunk(chunk)
+                for (event in events) {
+                    emit(event)
+                }
+            }
+            val finalEvents = decoder.finish()
+            for (event in finalEvents) {
+                emit(event)
+            }
+        } catch (e: Exception) {
+            emit(SynthesisEvent.Error("ストリーミング合成に失敗しました: ${e.message}", e))
+        } finally {
+            decoder.close()
         }
     }
 

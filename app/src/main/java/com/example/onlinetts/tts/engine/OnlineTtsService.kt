@@ -7,12 +7,13 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.TextToSpeechService
 import android.util.Log
 import com.example.onlinetts.data.repository.SettingsRepository
-import com.example.onlinetts.tts.api.TtsApiResult
+import com.example.onlinetts.tts.api.SynthesisEvent
 import com.example.onlinetts.tts.provider.TtsProviderFactory
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 
@@ -84,42 +85,47 @@ class OnlineTtsService : TextToSpeechService() {
                     return@runBlocking
                 }
 
-                val result = provider.synthesize(
+                val flow = provider.synthesizeStreaming(
                     text = text,
                     voiceId = settings.selectedVoiceId,
                     params = settings.voiceParams,
                 )
 
-                when (result) {
-                    is TtsApiResult.Success -> {
-                        if (isStopped) return@runBlocking
-
-                        val synthesis = result.data
-                        val audioFormat = when (synthesis.bitsPerSample) {
-                            8 -> AudioFormat.ENCODING_PCM_8BIT
-                            16 -> AudioFormat.ENCODING_PCM_16BIT
-                            else -> AudioFormat.ENCODING_PCM_16BIT
-                        }
-
-                        callback.start(synthesis.sampleRate, audioFormat, synthesis.channels)
-
-                        val pcmData = synthesis.pcmData
-                        var offset = 0
-                        while (offset < pcmData.size && !isStopped) {
-                            val bytesToWrite = minOf(CHUNK_SIZE, pcmData.size - offset)
-                            callback.audioAvailable(pcmData, offset, bytesToWrite)
-                            offset += bytesToWrite
-                        }
-
-                        if (!isStopped) {
-                            callback.done()
-                        }
+                flow.collect { event ->
+                    if (isStopped) {
+                        throw CancellationException("TTS stopped")
                     }
-                    is TtsApiResult.Error -> {
-                        Log.e(TAG, "Synthesis failed: ${result.message}", result.cause)
-                        callback.error()
+                    when (event) {
+                        is SynthesisEvent.Started -> {
+                            val audioFormat = when (event.bitsPerSample) {
+                                8 -> AudioFormat.ENCODING_PCM_8BIT
+                                16 -> AudioFormat.ENCODING_PCM_16BIT
+                                else -> AudioFormat.ENCODING_PCM_16BIT
+                            }
+                            callback.start(event.sampleRate, audioFormat, event.channels)
+                        }
+                        is SynthesisEvent.Audio -> {
+                            val pcmData = event.pcmData
+                            var offset = 0
+                            while (offset < pcmData.size && !isStopped) {
+                                val bytesToWrite = minOf(CHUNK_SIZE, pcmData.size - offset)
+                                callback.audioAvailable(pcmData, offset, bytesToWrite)
+                                offset += bytesToWrite
+                            }
+                        }
+                        is SynthesisEvent.Error -> {
+                            Log.e(TAG, "Streaming synthesis error: ${event.message}", event.cause)
+                            callback.error()
+                        }
+                        is SynthesisEvent.Done -> {
+                            if (!isStopped) {
+                                callback.done()
+                            }
+                        }
                     }
                 }
+            } catch (_: CancellationException) {
+                Log.d(TAG, "Synthesis cancelled")
             } catch (e: Exception) {
                 Log.e(TAG, "Synthesis error", e)
                 callback.error()

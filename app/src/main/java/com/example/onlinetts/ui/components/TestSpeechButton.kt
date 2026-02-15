@@ -21,11 +21,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.onlinetts.tts.api.SynthesisResult
-import com.example.onlinetts.tts.api.TtsApiResult
+import com.example.onlinetts.tts.api.SynthesisEvent
 import com.example.onlinetts.tts.provider.TtsProvider
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -50,20 +48,64 @@ fun TestSpeechButton(
                 isPlaying = true
                 errorMessage = null
                 scope.launch {
+                    var audioTrack: AudioTrack? = null
                     try {
-                        when (val result = provider.synthesize(text, voiceId, params)) {
-                            is TtsApiResult.Success -> {
-                                playPcm(result.data)
-                            }
-                            is TtsApiResult.Error -> {
-                                Log.e(TAG, "Synthesis error: ${result.message}", result.cause)
-                                errorMessage = result.message
+                        provider.synthesizeStreaming(text, voiceId, params).collect { event ->
+                            when (event) {
+                                is SynthesisEvent.Started -> {
+                                    val channelConfig = if (event.channels == 1) {
+                                        AudioFormat.CHANNEL_OUT_MONO
+                                    } else {
+                                        AudioFormat.CHANNEL_OUT_STEREO
+                                    }
+                                    val audioFormat = when (event.bitsPerSample) {
+                                        8 -> AudioFormat.ENCODING_PCM_8BIT
+                                        16 -> AudioFormat.ENCODING_PCM_16BIT
+                                        else -> AudioFormat.ENCODING_PCM_16BIT
+                                    }
+                                    val bufferSize = AudioTrack.getMinBufferSize(
+                                        event.sampleRate,
+                                        channelConfig,
+                                        audioFormat,
+                                    )
+                                    audioTrack = AudioTrack.Builder()
+                                        .setAudioAttributes(
+                                            AudioAttributes.Builder()
+                                                .setUsage(AudioAttributes.USAGE_MEDIA)
+                                                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                                                .build(),
+                                        )
+                                        .setAudioFormat(
+                                            AudioFormat.Builder()
+                                                .setSampleRate(event.sampleRate)
+                                                .setChannelMask(channelConfig)
+                                                .setEncoding(audioFormat)
+                                                .build(),
+                                        )
+                                        .setBufferSizeInBytes(maxOf(bufferSize, 16384))
+                                        .setTransferMode(AudioTrack.MODE_STREAM)
+                                        .build()
+                                    audioTrack!!.play()
+                                }
+                                is SynthesisEvent.Audio -> {
+                                    withContext(Dispatchers.IO) {
+                                        audioTrack?.write(event.pcmData, 0, event.pcmData.size)
+                                    }
+                                }
+                                is SynthesisEvent.Error -> {
+                                    Log.e(TAG, "Synthesis error: ${event.message}", event.cause)
+                                    errorMessage = event.message
+                                }
+                                is SynthesisEvent.Done -> {
+                                    audioTrack?.stop()
+                                }
                             }
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "Playback error", e)
                         errorMessage = "再生エラー: ${e.message}"
                     } finally {
+                        audioTrack?.release()
                         isPlaying = false
                     }
                 }
@@ -85,50 +127,5 @@ fun TestSpeechButton(
                 style = MaterialTheme.typography.bodySmall,
             )
         }
-    }
-}
-
-private suspend fun playPcm(result: SynthesisResult) = withContext(Dispatchers.IO) {
-    val channelConfig = if (result.channels == 1) {
-        AudioFormat.CHANNEL_OUT_MONO
-    } else {
-        AudioFormat.CHANNEL_OUT_STEREO
-    }
-    val audioFormat = when (result.bitsPerSample) {
-        8 -> AudioFormat.ENCODING_PCM_8BIT
-        16 -> AudioFormat.ENCODING_PCM_16BIT
-        else -> AudioFormat.ENCODING_PCM_16BIT
-    }
-
-    val bufferSize = AudioTrack.getMinBufferSize(result.sampleRate, channelConfig, audioFormat)
-    val audioTrack = AudioTrack.Builder()
-        .setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                .build()
-        )
-        .setAudioFormat(
-            AudioFormat.Builder()
-                .setSampleRate(result.sampleRate)
-                .setChannelMask(channelConfig)
-                .setEncoding(audioFormat)
-                .build()
-        )
-        .setBufferSizeInBytes(maxOf(bufferSize, result.pcmData.size))
-        .setTransferMode(AudioTrack.MODE_STATIC)
-        .build()
-
-    try {
-        audioTrack.write(result.pcmData, 0, result.pcmData.size)
-        audioTrack.play()
-
-        val durationMs = (result.pcmData.size.toLong() * 1000) /
-            (result.sampleRate.toLong() * result.channels * (result.bitsPerSample / 8))
-        delay(durationMs + 100)
-
-        audioTrack.stop()
-    } finally {
-        audioTrack.release()
     }
 }
